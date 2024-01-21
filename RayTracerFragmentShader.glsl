@@ -93,6 +93,11 @@ vec3 sample_(vec3 wo, vec3 N, int type);
 vec3 toWorld(vec3 v, vec3 N);
 float pdf_(vec3 wo, vec3 wi, vec3 N, int type);
 vec3 eval_(vec3 wi, vec3 wo, vec3 N, Material material);
+float DistributionGGX(vec3 N, vec3 H, float a);
+float GeometrySmith(float NdotV, float NdotL, float k);
+float GeometrySchlickGGX(float NdotV, float k);
+vec3 lerp(vec3 a, vec3 b, float t);
+vec3 fresnelSchlick(float cosTheta, vec3 F0);
 
 void main() {
 	wseed = uint(randOrigin * float(6.95857) * (TexCoords.x * TexCoords.y));
@@ -347,11 +352,10 @@ vec3 toWorld(vec3 v, vec3 N) {
 	return v.x * tangent + v.y * bitangent + v.z * N;
 }
 
-vec3 sample_(vec3 wo, vec3 N, int type){
+vec3 sample_(vec3 wo, vec3 N, Material material){
 	vec3 dir;
-	switch(type) {
+	switch(material.transmission) {
 		case 0: {
-
 			float z = rand();
 			float r = max(0, sqrt(1.0 - z*z));
 			float phi = 2.0 * PI * rand();
@@ -361,24 +365,79 @@ vec3 sample_(vec3 wo, vec3 N, int type){
 			dir = toWorld(localRay, N);
 			break;
 		}
+		case 1: {
+			// 随机一个 ε 和 φ
+			float r0 = rand();
+			float r1 = rand();
+			float a2 = material.roughness * material.roughness;
+			float phi = 2 * PI * r1;
+			float theta = cos(sqrt((1 - r0) / (r0 * (a2 - 1) + 1)));
+			// 单位向量半径就直接 1 了，转换为直角坐标系只需要用到 r*sinθ，所以这里直接乘上去了
+			float r = sin(theta);
+			dir = reflect(-wo, toWorld(vec3(r * cos(phi), r * sin(phi), cos(theta)), N));
+			break;
+		}
 	}
 	return dir;
 }
 
-float pdf_(vec3 wo, vec3 wi, vec3 N, int type){
-	float pdf;
+float DistributionGGX(vec3 N, vec3 H, float a){
+	float a2     = a*a;
+	float NdotH  = max(dot(N, H), 0.f);
+	float NdotH2 = NdotH*NdotH;
+	float nom    = a2;
+	float denom  = (NdotH2 * (a2 - 1.0) + 1.0);
+	denom        = PI * denom * denom;
 
+	return nom / denom;
+}
+
+float GeometrySchlickGGX(float NdotV, float k)
+{
+	float nom   = NdotV;
+	float denom = NdotV * (1.0 - k) + k;
+
+	return nom / denom;
+}
+
+float GeometrySmith(float NdotV, float NdotL, float k)
+{
+	float ggx1 = GeometrySchlickGGX(NdotV, k);
+	float ggx2 = GeometrySchlickGGX(NdotL, k);
+
+	return ggx1 * ggx2;
+}
+
+float pdf_(vec3 wo, vec3 wi, vec3 N, Material material){
+	float pdf;
 	float cosalpha_i_N = dot(wi, N);
-	switch(type) {
+	switch(material.transmission) {
 		case 0:{
 			if (cosalpha_i_N > EPSILON)
-				pdf = 0.5 / PI;
+				pdf =  0.5 / PI;
 			else
-				pdf = 0.0f;
+				pdf =  0.0f;
+			break;
+		}
+		case 1: {
+			if (cosalpha_i_N > EPSILON) {
+				vec3 h = normalize(wo + wi);
+				pdf = DistributionGGX(N, h, material.roughness) * dot(N, h) / (4.f * dot(wo, h));
+			}else{
+				pdf =  0.0f;
+			}
 			break;
 		}
 	}
 	return pdf;
+}
+
+vec3 lerp(vec3 a, vec3 b, float t){
+	return a * (1 - t) + b * t;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0){
+	return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 vec3 eval_(vec3 wi, vec3 wo, vec3 N, Material material) {
@@ -390,6 +449,38 @@ vec3 eval_(vec3 wi, vec3 wo, vec3 N, Material material) {
 				f_r = material.baseColor / PI;
 			}else {
 				f_r = vec3(0.0f);
+			}
+			break;
+		}
+		case 1: {
+			// cosθ是入射光和法线的夹角，也就是光源方向和法线方向的夹角
+			float cosTheta = dot(N, wo);
+			if(cosTheta > EPSILON) {
+				vec3 V = wi;
+				vec3 L = wo;
+				vec3 H = normalize(V + L);
+				float NdotV = max(dot(N, V), EPSILON);
+				float NdotL = cosTheta;
+				// 直接光照情况下的 k 公式
+				float k = (material.roughness + 1.f) * (material.roughness + 1.f) / 8.f;
+				float D = DistributionGGX(N, H, material.roughness);
+				float G = GeometrySmith(NdotV, NdotL, k);
+
+				vec3 F0 = vec3(0.04f);
+				F0 = lerp(F0, material.baseColor, material.metallic);
+				vec3 F = fresnelSchlick(dot(H, V), F0);
+				// float F;
+				// fresnel(-V, N, ior, F);
+				vec3 fs = D * G * F / (4.f * NdotV  * NdotL);
+
+				// std::cout << fs <<std::endl;
+				// 菲涅尔项就是 ks， kd = 1-ks;
+				vec3 fr =  material.baseColor / PI;
+
+				// return (Vector3f(1.0f) - F0) * fr + F0 * fs;
+				f_r = (vec3(1.0f) - F) * (1 - material.metallic) * fr + fs;
+			}else {
+				f_r = vec3(0.f);
 			}
 			break;
 		}
@@ -411,8 +502,33 @@ vec3 shade(HitResult hit_obj, vec3 wo){
 				break;
 			}
 			case 0: {
-				vec3 dir_next = sample_(wo, hit_obj.normal, hit_obj.material.transmission);
-				float pdf = pdf_(wo, dir_next, hit_obj.normal, hit_obj.material.transmission);
+				vec3 dir_next = sample_(wo, hit_obj.normal, hit_obj.material);
+				float pdf = pdf_(wo, dir_next, hit_obj.normal, hit_obj.material);
+				if(pdf > EPSILON) {
+					Ray ray; ray.origin = hit_obj.hitPoint; ray.direction = dir_next;
+					HitResult nextObj = hitBVH(ray);
+
+					if(nextObj.isHit) {
+						vec3 f_r = eval_(dir_next, wo, hit_obj.normal, hit_obj.material);
+						float cos = max(0.0f, dot(dir_next, hit_obj.normal));
+
+						Lo *= f_r * cos / pdf;
+
+						hit_obj = nextObj;
+						wo = -dir_next;
+					}else {
+						Lo = vec3(0.0f);
+						flag = 0;
+					}
+				}else {
+					Lo = vec3(0.0f);
+					flag = 0;
+				}
+				break;
+			}
+			case 1:{
+				vec3 dir_next = sample_(wo, hit_obj.normal, hit_obj.material);
+				float pdf = pdf_(wo, dir_next, hit_obj.normal, hit_obj.material);
 				if(pdf > EPSILON) {
 					Ray ray; ray.origin = hit_obj.hitPoint; ray.direction = dir_next;
 					HitResult nextObj = hitBVH(ray);

@@ -1,39 +1,39 @@
-// ÎïÌå±íÃæ²ÄÖÊ¶¨Òå
+// æè´¨ç›¸å…³
 struct Material {
-    glm::vec3 emissive = glm::vec3(0.0f, 0.0f, 0.0f);  // ×÷Îª¹âÔ´Ê±µÄ·¢¹âÑÕÉ«
+    glm::vec3 emissive = glm::vec3(0.0f, 0.0f, 0.0f);  // ä½œä¸ºå…‰æºæ—¶çš„å‘å…‰é¢œè‰²
     glm::vec3 baseColor = glm::vec3(0, 0, 0);
     float subsurface = 0.0;
-    float metallic = 0.0; // ½ğÊô¶È
+    float metallic = 0.0; // é‡‘å±åº¦
     float specular = 0.0;
     float specularTint = 0.0;
-    float roughness = 0.0; //´ÖÔì¶È
+    float roughness = 0.0; // ç²—ç³™åº¦
     float anisotropic = 0.0;
     float sheen = 0.0;
     float sheenTint = 0.0;
     float clearcoat = 0.0;
     float clearcoatGloss = 0.0;
     float IOR = 1.0;
-    float transmission = 0.0; // ÔİÊ±×÷ÎªÀàĞÍ¡£0: DIFFUSE, 1: MICROFACET
+    float transmission = 0.0; // æš‚æ—¶è®¾ç½®ä¸ºæè´¨å±æ€§ {0: DIFFUSE, 1: MICROFACET}
 };
 
-// Èı½ÇĞÎ¶¨Òå
+// ï¿½ï¿½ï¿½ï¿½ï¿½Î¶ï¿½ï¿½ï¿½
 struct Triangle {
-    glm::vec3 p1, p2, p3;    // ¶¥µã×ø±ê
-    glm::vec3 n1, n2, n3;    // ¶¥µã·¨Ïß
-    Material material;  // ²ÄÖÊ
+    glm::vec3 p1, p2, p3;    // é¡¶ç‚¹åæ ‡
+    glm::vec3 n1, n2, n3;    // æ³•çº¿å‘é‡
+    Material material;  // æè´¨
 };
 
 struct BVHNode {
-    int left, right;    // ×óÓÒ×ÓÊ÷Ë÷Òı
-    int n, index;       // Ò¶×Ó½ÚµãĞÅÏ¢
-    glm::vec3 AA, BB;        // Åö×²ºĞ
+    int left, right;    // å·¦å³å­æ ‘ç´¢å¼•
+    int n, index;       // å¶å­èŠ‚ç‚¹ä¿¡æ¯
+    glm::vec3 AA, BB;        // AABBåŒ…å›´ç›’
 };
 
 struct Triangle_encoded {
-    glm::vec3 p1, p2, p3;    // ¶¥µã×ø±ê
-    glm::vec3 n1, n2, n3;    // ¶¥µã·¨Ïß
-    glm::vec3 emissive;      // ×Ô·¢¹â²ÎÊı
-    glm::vec3 baseColor;     // ÑÕÉ«
+    glm::vec3 p1, p2, p3;    // é¡¶ç‚¹åæ ‡
+    glm::vec3 n1, n2, n3;    // é¡¶ç‚¹æ³•çº¿
+    glm::vec3 emissive;      // è‡ªå‘å…‰å‚æ•°
+    glm::vec3 baseColor;     // é¢œè‰²
     glm::vec3 param1;        // (subsurface, metallic, specular)
     glm::vec3 param2;        // (specularTint, roughness, anisotropic)
     glm::vec3 param3;        // (sheen, sheenTint, clearcoat)
@@ -41,8 +41,8 @@ struct Triangle_encoded {
 };
 
 struct BVHNode_encoded {
-    glm::vec3 childs;        // (left, right, ±£Áô)
-    glm::vec3 leafInfo;      // (n, index, ±£Áô)
+    glm::vec3 childs;        // (left, right,ä¿ç•™é¡¹)
+    glm::vec3 leafInfo;      // (n, index, ä¿ç•™é¡¹)
     glm::vec3 AA;
     glm::vec3 BB;
 };

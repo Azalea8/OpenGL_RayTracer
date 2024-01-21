@@ -1,8 +1,8 @@
 #include "vector"
 
-// Ä£ĞÍ±ä»»¾ØÕó
+// æ¨¡å‹å˜æ¢çŸ©é˜µ
 glm::mat4 getTransformMatrix(glm::vec3 rotateCtrl, glm::vec3 translateCtrl, glm::vec3 scaleCtrl) {
-    glm::mat4 unit(    // µ¥Î»¾ØÕó
+    glm::mat4 unit(    // å•ä½çŸ©é˜µ
             glm::vec4(1, 0, 0, 0),
             glm::vec4(0, 1, 0, 0),
             glm::vec4(0, 0, 1, 0),
@@ -21,19 +21,19 @@ glm::mat4 getTransformMatrix(glm::vec3 rotateCtrl, glm::vec3 translateCtrl, glm:
 
 void readObj(const std::string& filepath, std::vector<Triangle>& triangles, Material material, glm::mat4 trans, bool smoothNormal) {
 
-    // ¶¥µãÎ»ÖÃ£¬Ë÷Òı
+    // é¡¶ç‚¹ä½ç½®ï¼Œç´¢å¼•
     std::vector<glm::vec3> vertices;
     std::vector<GLuint> indices;
 
-    // ´ò¿ªÎÄ¼şÁ÷
+    // æ‰“å¼€æ–‡ä»¶æµ
     std::ifstream fin(filepath);
     std::string line;
     if (!fin.is_open()) {
-        std::cout << "ÎÄ¼ş " << filepath << " ´ò¿ªÊ§°Ü" << std::endl;
+        std::cout << "ï¿½Ä¼ï¿½ " << filepath << " ï¿½ï¿½Ê§ï¿½ï¿½" << std::endl;
         exit(-1);
     }
 
-    // ¼ÆËã AABB ºĞ£¬¹éÒ»»¯Ä£ĞÍ´óĞ¡
+    // è®¡ç®— AABB ç›’
     float maxx = -11451419.19;
     float maxy = -11451419.19;
     float maxz = -11451419.19;
@@ -41,9 +41,9 @@ void readObj(const std::string& filepath, std::vector<Triangle>& triangles, Mate
     float miny = 11451419.19;
     float minz = 11451419.19;
 
-    // °´ĞĞ¶ÁÈ¡
+    // æŒ‰è¡Œè¯»å–
     while (std::getline(fin, line)) {
-        std::istringstream sin(line);   // ÒÔÒ»ĞĞµÄÊı¾İ×÷Îª string stream ½âÎö²¢ÇÒ¶ÁÈ¡
+        std::istringstream sin(line);    // ä»¥ä¸€è¡Œçš„æ•°æ®ä½œä¸º string stream è§£æå¹¶ä¸”è¯»å–
         std::string type;
         GLfloat x, y, z;
         int v0, v1, v2;
@@ -51,13 +51,13 @@ void readObj(const std::string& filepath, std::vector<Triangle>& triangles, Mate
         int vt0, vt1, vt2;
         char slash;
 
-        // Í³¼ÆĞ±¸ËÊıÄ¿£¬ÓÃ²»Í¬¸ñÊ½¶ÁÈ¡
+        // ç»Ÿè®¡æ–œæ†æ•°ç›®ï¼Œç”¨ä¸åŒæ ¼å¼è¯»å–
         int slashCnt = 0;
         for (int i = 0; i < line.length(); i++) {
             if (line[i] == '/') slashCnt++;
         }
 
-        // ¶ÁÈ¡objÎÄ¼ş
+        // è¯»å–objæ–‡ä»¶
         sin >> type;
         if (type == "v") {
             sin >> x >> y >> z;
@@ -85,25 +85,14 @@ void readObj(const std::string& filepath, std::vector<Triangle>& triangles, Mate
         }
     }
 
-    // Ä£ĞÍ´óĞ¡¹éÒ»»¯
-//    float lenx = maxx - minx;
-//    float leny = maxy - miny;
-//    float lenz = maxz - minz;
-//    float maxaxis = std::max(lenx, std::max(leny, lenz));
-//    for (auto& v : vertices) {
-//        v.x /= maxaxis;
-//        v.y /= maxaxis;
-//        v.z /= maxaxis;
-//    }
-
-    // Í¨¹ı¾ØÕó½øĞĞ×ø±ê±ä»»
+    // é€šè¿‡çŸ©é˜µè¿›è¡Œåæ ‡å˜æ¢
     for (auto& v : vertices) {
         glm::vec4 vv = glm::vec4(v.x, v.y, v.z, 1);
         vv = trans * vv;
         v = glm::vec3(vv.x, vv.y, vv.z);
     }
 
-    // Éú³É·¨Ïß
+    // ç”Ÿæˆæ³•çº¿
     std::vector<glm::vec3> normals(vertices.size(), glm::vec3(0, 0, 0));
     for (int i = 0; i < indices.size(); i += 3) {
         glm::vec3 p1 = vertices[indices[i]];
@@ -115,12 +104,12 @@ void readObj(const std::string& filepath, std::vector<Triangle>& triangles, Mate
         normals[indices[i + 2]] += n;
     }
 
-    // ¹¹½¨ Triangle ¶ÔÏóÊı×é
-    int offset = triangles.size();  // ÔöÁ¿¸üĞÂ
+    // æ„å»º Triangle å¯¹è±¡æ•°ç»„
+    int offset = triangles.size(); // å¢é‡æ›´æ–°
     triangles.resize(offset + indices.size() / 3);
     for (int i = 0; i < indices.size(); i += 3) {
         Triangle& t = triangles[offset + i / 3];
-        // ´«¶¥µãÊôĞÔ
+        // ä¼ é¡¶ç‚¹å±æ€§
         t.p1 = vertices[indices[i]];
         t.p2 = vertices[indices[i + 1]];
         t.p3 = vertices[indices[i + 2]];
@@ -134,7 +123,7 @@ void readObj(const std::string& filepath, std::vector<Triangle>& triangles, Mate
             t.n3 = normalize(normals[indices[i + 2]]);
         }
 
-        // ´«²ÄÖÊ
+        // ä¼ æè´¨
         t.material = material;
     }
 }

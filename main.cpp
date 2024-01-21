@@ -111,7 +111,7 @@ int main()
     readObj("../models/cornellbox/right.obj", triangles, green, getTransformMatrix(glm::vec3(0, 0, 0), glm::vec3(0.0, 0.0, -0.0), glm::vec3(1,1, 1)) , false);
     readObj("../models/cornellbox/left.obj", triangles, red, getTransformMatrix(glm::vec3(0, 0, 0), glm::vec3(0.0, 0.0, -0.0), glm::vec3(1,1, 1)) , false);
     readObj("../models/cornellbox/light.obj", triangles, light, getTransformMatrix(glm::vec3(0, 0, 0), glm::vec3(0.0, 0.0, -0.0), glm::vec3(1,1, 1)) , false);
-    // readObj("../Data/bunny.obj", triangles, m, getTransformMatrix(glm::vec3(180, 0, 180), glm::vec3(200, -60, 150), glm::vec3(1500,1500, 1500)) , false);
+    // readObj("../models/bunny/bunny.obj", triangles, white, getTransformMatrix(glm::vec3(180, 0, 180), glm::vec3(200, -60, 150), glm::vec3(1500,1500, 1500)) , false);
 
     int nTriangles = triangles.size();
     std::cout << "Triangles: " << nTriangles << std::endl;

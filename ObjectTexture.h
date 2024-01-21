@@ -25,7 +25,7 @@ public:
 		// and finally bind the texture
         glBindTexture(GL_TEXTURE_BUFFER, trianglesTextureBuffer);
 
-		// 激活并绑定纹理
+        // 婵�娲诲苟缁戝畾绾圭悊
 		glActiveTexture(GL_TEXTURE0 + 2);
 		// and finally bind the texture
         glBindTexture(GL_TEXTURE_BUFFER, nodesTextureBuffer);
@@ -58,10 +58,10 @@ public:
 
         glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, tbo_2);
 
-        // 删除数组
+        // 鍒犻櫎鏁扮粍
         nodes_encoded.clear();
 
-        // 释放内存
+        // 閲婃斁鍐呭瓨
         nodes_encoded.shrink_to_fit();
     }
 
@@ -70,15 +70,15 @@ public:
         for (int i = 0; i < nTriangles; i++) {
             Triangle& t = triangles[i];
             Material& m = t.material;
-            // 顶点位置
+            // 椤剁偣浣嶇疆
             triangles_encoded[i].p1 = t.p1;
             triangles_encoded[i].p2 = t.p2;
             triangles_encoded[i].p3 = t.p3;
-            // 顶点法线
+            // 椤剁偣娉曠嚎
             triangles_encoded[i].n1 = t.n1;
             triangles_encoded[i].n2 = t.n2;
             triangles_encoded[i].n3 = t.n3;
-            // 材质
+            // 鏉愯川
             triangles_encoded[i].emissive = m.emissive;
             triangles_encoded[i].baseColor = m.baseColor;
             triangles_encoded[i].param1 = glm::vec3(m.subsurface, m.metallic, m.specular);
@@ -102,10 +102,10 @@ public:
 
         glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, tbo_1);
 
-        // 删除数组
+        // 鍒犻櫎鏁扮粍
         triangles_encoded.clear();
 
-        // 释放内存
+        // 閲婃斁鍐呭瓨
         triangles_encoded.shrink_to_fit();
     }
 };
